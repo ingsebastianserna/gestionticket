@@ -1,0 +1,96 @@
+CREATE DATABASE todo_app;
+
+
+USE todo_app;
+
+
+CREATE TABLE IF NOT EXISTS usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    dni VARCHAR(20) UNIQUE NOT NULL,
+    nombre VARCHAR(100) NOT NULL,
+    rol ENUM('administrador', 'tecnico', 'recepcionista') NOT NULL,
+    password VARCHAR(255) NOT NULL
+);
+
+
+CREATE TABLE tarea (
+    tarea_id INT AUTO_INCREMENT PRIMARY KEY,
+    Equipo VARCHAR(255) NOT NULL,
+    descripcion TEXT NOT NULL,
+    status ENUM('cola', 'proceso', 'terminada', 'espera_aut') DEFAULT 'cola',
+    prioridad ENUM('baja', 'media', 'alta') DEFAULT 'baja',
+    informado BOOLEAN DEFAULT 0,
+    tecnico_id INT,
+    fechaAsignacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fechaProceso TIMESTAMP DEFAULT NULL,
+    fechaFinalizada TIMESTAMP DEFAULT NULL,
+    CONSTRAINT fk_tecnico FOREIGN KEY (tecnico_id) REFERENCES usuarios(id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+
+CREATE TABLE tareaArchivadas (
+    tarea_id INT UNIQUE NOT NULL,
+    Equipo VARCHAR(255) NOT NULL,
+    descripcion TEXT NOT NULL,
+    status VARCHAR(255) NOT NULL,
+    prioridad VARCHAR(255) NOT NULL,
+    informado BOOLEAN NOT NULL,
+    tecnico_id INT NOT NULL,
+    fechaAsignacion TIMESTAMP NOT NULL,
+    fechaProceso TIMESTAMP NOT NULL,
+    fechaFinalizada TIMESTAMP NOT NULL,
+    fechaArchivada TIMESTAMP NOT NULL
+);
+
+
+CREATE VIEW vista_tareas_tecnicos AS
+SELECT 
+    t.tarea_id,
+    t.Equipo,
+    t.descripcion,
+    t.status,
+    t.prioridad,
+    t.informado,
+    t.fechaAsignacion,
+    t.fechaProceso,
+    t.fechaFinalizada,
+    u.id AS tecnico_id,
+    u.dni,
+    u.nombre,
+    u.rol
+FROM 
+    tarea t
+JOIN 
+    usuarios u ON t.tecnico_id = u.id;
+
+
+CREATE VIEW vista_tareasArchivadas_tecnicos AS
+SELECT 
+    t.tarea_id,
+    t.Equipo,
+    t.descripcion,
+    t.status,
+    t.prioridad,
+    t.informado,
+    t.fechaAsignacion,
+    t.fechaProceso,
+    t.fechaFinalizada,
+    t.fechaArchivada,
+    u.id AS tecnico_id,
+    u.dni,
+    u.nombre,
+    u.rol
+FROM 
+    tareaarchivadas t
+JOIN 
+    usuarios u ON t.tecnico_id = u.id;
+
+
+INSERT INTO usuarios (dni, nombre, rol, password) 
+VALUES ('9728180', 'Admin', 'administrador', 'almendra1984');
+
+
+
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'A1b2C3d4**';
+
+FLUSH PRIVILEGES;
